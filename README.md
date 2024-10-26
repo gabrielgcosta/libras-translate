@@ -38,24 +38,27 @@ Este projeto é uma aplicação web que utiliza técnicas de visão computaciona
 
 git clone https://github.com/gabrielgcosta/libras-translate
 cd libras-translate
-Instale as dependências:
 
+### Instale as dependências:
 pip install -r requirements.txt
-Crie as pastas necessárias:
 
+### Crie as pastas necessárias:
 Certifique-se de que a pasta images existe na raiz do projeto.
-Execute o aplicativo:
 
+### Execute o aplicativo:
 python app.py
-Acesse o sistema: Abra o navegador e vá para http://localhost:5000/translate para visualizar o stream de vídeo e testar a tradução em tempo real.
 
-Endpoints e API
-/process_images [POST]
+### Acesse o sistema:
+Abra o navegador e vá para http://localhost:5000/translate para visualizar o stream de vídeo e testar a tradução em tempo real.
+
+## Endpoints e API
+## /process_images [POST]
 Processa todas as imagens na pasta images, extrai os landmarks e salva no CSV para posterior treinamento do modelo.
 
 Resposta de Sucesso: { "message": "Processed images: [lista de imagens]" }
 Erro: { "error": "Images folder not found" }
-/train [POST]
+
+## /train [POST]
 Treina o modelo de Random Forest usando os dados salvos no CSV.
 
 Resposta de Sucesso: { "message": "Model trained successfully!" }
