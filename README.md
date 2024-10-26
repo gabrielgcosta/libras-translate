@@ -1,39 +1,39 @@
-#Sistema de Tradução em Libras para Português
+# Sistema de Tradução em Libras para Português
 
 Este projeto é uma aplicação web que utiliza técnicas de visão computacional e aprendizado de máquina para traduzir gestos de Libras (Língua Brasileira de Sinais) em texto em português. O sistema foi desenvolvido em Python com a biblioteca Flask e usa MediaPipe para detecção de landmarks das mãos, com um modelo de Random Forest para classificação dos gestos.
 
 
-##Funcionalidades Principais
+## Funcionalidades Principais
 
-###Captura de Gestos em Libras: Utiliza a câmera para capturar gestos em tempo real.
-###Processamento de Imagens e Landmarks: Extrai landmarks das mãos usando MediaPipe.
-###Classificação de Gestos com Random Forest: Treina um modelo de Random Forest para classificação dos gestos com base nos landmarks.
-###Tradução em Tempo Real: Transmite a tradução do gesto capturado pela câmera diretamente na interface web.
-
-
-##Tecnologias e Bibliotecas
-###Python: Linguagem principal do backend.
-###Flask: Framework para criar a API e servir a interface web.
-###OpenCV: Utilizado para manipulação de imagens e captura de vídeo.
-###MediaPipe: Biblioteca para detecção e rastreamento dos landmarks das mãos.
-###Scikit-learn: Usado para treinar o modelo de Random Forest.
-###Pandas: Manipulação de dados para carregar e processar o dataset de landmarks.
-###NumPy: Suporte para cálculos e operações com arrays.
-###CSV: Armazenamento dos dados de landmarks e rótulos em um arquivo CSV.
+### Captura de Gestos em Libras: Utiliza a câmera para capturar gestos em tempo real.
+### Processamento de Imagens e Landmarks: Extrai landmarks das mãos usando MediaPipe.
+### Classificação de Gestos com Random Forest: Treina um modelo de Random Forest para classificação dos gestos com base nos landmarks.
+### Tradução em Tempo Real: Transmite a tradução do gesto capturado pela câmera diretamente na interface web.
 
 
-##Estrutura do Projeto
-###app.py: Arquivo principal do projeto que contém todas as rotas e lógica do backend.
-###images/: Pasta onde as imagens de treinamento para o modelo são armazenadas.
-###libras_dataset.csv: Arquivo CSV onde são salvos os landmarks das mãos e os rótulos dos gestos.
-###templates/: Contém os templates HTML, incluindo translate.html para o stream de vídeo em tempo real.
-###requirements.txt: Lista de dependências do projeto.
+## Tecnologias e Bibliotecas
+### Python: Linguagem principal do backend.
+### Flask: Framework para criar a API e servir a interface web.
+### OpenCV: Utilizado para manipulação de imagens e captura de vídeo.
+### MediaPipe: Biblioteca para detecção e rastreamento dos landmarks das mãos.
+### Scikit-learn: Usado para treinar o modelo de Random Forest.
+### Pandas: Manipulação de dados para carregar e processar o dataset de landmarks.
+### NumPy: Suporte para cálculos e operações com arrays.
+### CSV: Armazenamento dos dados de landmarks e rótulos em um arquivo CSV.
 
 
-##Instalação e Configuração
+## Estrutura do Projeto
+### app.py: Arquivo principal do projeto que contém todas as rotas e lógica do backend.
+### images/: Pasta onde as imagens de treinamento para o modelo são armazenadas.
+### libras_dataset.csv: Arquivo CSV onde são salvos os landmarks das mãos e os rótulos dos gestos.
+### templates/: Contém os templates HTML, incluindo translate.html para o stream de vídeo em tempo real.
+### requirements.txt: Lista de dependências do projeto.
 
 
-###Clone o repositório:
+## Instalação e Configuração
+
+
+### Clone o repositório:
 
 
 git clone https://github.com/gabrielgcosta/libras-translate
