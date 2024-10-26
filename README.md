@@ -56,26 +56,31 @@ Abra o navegador e vá para http://localhost:5000/translate para visualizar o st
 Processa todas as imagens na pasta images, extrai os landmarks e salva no CSV para posterior treinamento do modelo.
 
 Resposta de Sucesso: { "message": "Processed images: [lista de imagens]" }
+
 Erro: { "error": "Images folder not found" }
 
 ## /train [POST]
 Treina o modelo de Random Forest usando os dados salvos no CSV.
 
 Resposta de Sucesso: { "message": "Model trained successfully!" }
+
 Erro: { "error": "No data available to train the model" }
-/translate [GET]
+
+## /translate [GET]
 Renderiza a página translate.html que exibe o stream de vídeo para a tradução em tempo real dos gestos.
 
-/video_feed [GET]
-Fornece o stream de vídeo em tempo real para a página translate.html.
+## Organização do Código e Fluxo de Dados
+### Captura de Imagens: As imagens de treinamento são colocadas na pasta images. Os nomes dos arquivos indicam o rótulo do gesto (e.g., "saudacao-01.jpg").
 
-Organização do Código e Fluxo de Dados
-Captura de Imagens: As imagens de treinamento são colocadas na pasta images. Os nomes dos arquivos indicam o rótulo do gesto (e.g., "saudacao-01.jpg").
-Processamento e Extração de Landmarks: A função process_images carrega cada imagem, detecta os landmarks das mãos e salva no CSV.
-Treinamento do Modelo: O endpoint /train utiliza o arquivo CSV para treinar um modelo Random Forest com os dados capturados.
-Tradução em Tempo Real: A função generate_frames captura o vídeo da câmera em tempo real e detecta os landmarks das mãos. Estes landmarks são passados para a função predict_gesture, que usa o modelo treinado para prever o gesto e exibir a tradução na tela.
-Estrutura do Dataset (CSV)
-O arquivo libras_dataset.csv contém as seguintes colunas:
+### Processamento e Extração de Landmarks: A função process_images carrega cada imagem, detecta os landmarks das mãos e salva no CSV.
 
+### Treinamento do Modelo: O endpoint /train utiliza o arquivo CSV para treinar um modelo Random Forest com os dados capturados.
+
+### Tradução em Tempo Real: A função generate_frames captura o vídeo da câmera em tempo real e detecta os landmarks das mãos. Estes landmarks são passados para a função predict_gesture, que usa o modelo treinado para prever o gesto e exibir a tradução na tela.
+
+### Estrutura do Dataset (CSV)
+
+### O arquivo libras_dataset.csv contém as seguintes colunas:
 label: O rótulo do gesto.
+
 landmark_{i}_{axis}: Coordenadas x, y e z dos 21 landmarks da mão. Isso resulta em 63 colunas adicionais para cada landmark.
