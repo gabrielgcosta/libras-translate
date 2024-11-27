@@ -7,6 +7,7 @@ import os
 import csv
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
+from flask import jsonify
 
 app = Flask(__name__)
 
@@ -17,6 +18,32 @@ mp_drawing = mp.solutions.drawing_utils
 # Caminho para o arquivo CSV onde salvaremos os landmarks
 csv_file = 'libras_dataset.csv'
 image_folder = 'images'
+test_folder = 'test'
+resized_image_folder = 'resized_images'
+image_size = (128, 128)  # Tamanho desejado para as imagens redimensionadas
+
+# Função para redimensionar as imagens antes do processamento
+def resize_images(input_dir, output_dir, size=(128, 128)):
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    for class_dir in os.listdir(input_dir):
+        class_path = os.path.join(input_dir, class_dir)
+        output_class_path = os.path.join(output_dir, class_dir)
+
+        if not os.path.exists(output_class_path):
+            os.makedirs(output_class_path)
+
+        for img_file in os.listdir(class_path):
+            img_path = os.path.join(class_path, img_file)
+            try:
+                with Image.open(img_path) as img:
+                    img_resized = img.resize(size, Image.LANCZOS)  # Substitui ANTIALIAS por LANCZOS
+                    new_file_path = os.path.join(output_class_path, img_file)
+                    img_resized.save(new_file_path, "PNG")
+                    print(f"Resized and saved image: {new_file_path}")
+            except Exception as e:
+                print(f"Error resizing image {img_file}: {e}")
 
 # Função para salvar os landmarks em um CSV
 def save_landmarks_to_csv(hand_landmarks, label):
@@ -30,11 +57,9 @@ def save_landmarks_to_csv(hand_landmarks, label):
 # Função para processar a imagem e capturar landmarks
 def process_image_for_landmarks(image, label):
     with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
-        # Converter a imagem para RGB para MediaPipe
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         results = hands.process(image_rgb)
 
-        # Verificar se foi encontrada alguma mão
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 save_landmarks_to_csv(hand_landmarks, label)
@@ -44,15 +69,24 @@ def process_image_for_landmarks(image, label):
 
 # Função para extrair o label do nome do arquivo
 def extract_label_from_filename(filename):
-    return filename.split('-')[0]  # Pega a parte antes do '-' como label
+    return filename.split('-')[0]
 
-# Função para processar as imagens da pasta e gerar o CSV
+# Função para processar as imagens redimensionadas e gerar o CSV
 @app.route('/process_images', methods=['POST'])
 def process_images():
-    if not os.path.exists(image_folder):
-        return jsonify({'error': 'Images folder not found'}), 400
+    # Redimensionar imagens, se necessário, e salvar na pasta de destino
+    if not os.path.exists(resized_image_folder):
+        resize_images(image_folder, resized_image_folder, image_size)
 
-    image_files = [f for f in os.listdir(image_folder) if f.endswith(('.png', '.jpg', '.jpeg'))]
+    # Coletar imagens de todas as subpastas de 'resized_image_folder'
+    image_files = []
+    for subfolder in os.listdir(resized_image_folder):
+        subfolder_path = os.path.join(resized_image_folder, subfolder)
+        subfolder_path = 'resized_images\A'
+        if os.path.isdir(subfolder_path):  # Verificar se é uma subpasta
+            for img_file in os.listdir(subfolder_path):
+                if img_file.endswith(('.png', '.jpg', '.jpeg')):
+                    image_files.append(os.path.join(subfolder_path, img_file))
 
     if not image_files:
         return jsonify({'error': 'No images found in the folder'}), 400
@@ -67,12 +101,11 @@ def process_images():
     processed_images = []
 
     for image_file in image_files:
-        # Extrair o label do nome do arquivo
-        label = extract_label_from_filename(image_file)
-        image_path = os.path.join(image_folder, image_file)
+        # Extrair o label do nome da subpasta
+        label = os.path.basename(os.path.dirname(image_file))
         
         # Abrir a imagem usando OpenCV
-        image = cv2.imread(image_path)
+        image = cv2.imread(image_file)
         if image is not None:
             success = process_image_for_landmarks(image, label)
             if success:
@@ -154,6 +187,68 @@ def predict_gesture(hand_landmarks):
         return prediction[0]
     else:
         return "Model not trained yet"
+    
+# Rota para validar o modelo usando as imagens da pasta test
+@app.route('/validate_model', methods=['POST'])
+def validate_model():
+    if not os.path.exists(test_folder):
+        return jsonify({'error': 'Test folder not found'}), 400
+
+    # Lista de resultados que será usada para gerar o CSV
+    validation_results = []  # Renomeando a variável para evitar conflito
+    
+    # Itera sobre cada pasta (cada letra) na pasta de teste
+    for letter_folder in os.listdir(test_folder):
+        letter_path = os.path.join(test_folder, letter_folder)
+        
+        # Verifica se é um diretório
+        if os.path.isdir(letter_path):
+            total_images = 0
+            correct_predictions = 0
+            incorrect_predictions = 0
+            
+            # Itera sobre cada imagem na subpasta
+            for image_file in os.listdir(letter_path):
+                image_path = os.path.join(letter_path, image_file)
+                
+                # Abre a imagem e processa com o modelo
+                image = cv2.imread(image_path)
+                if image is not None:
+                    total_images += 1
+                    
+                    # Extrai landmarks da imagem
+                    with mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5) as hands:
+                        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                        hand_results = hands.process(image_rgb)  # Renomeado para evitar conflito
+
+                        if hand_results.multi_hand_landmarks:
+                            for hand_landmarks in hand_results.multi_hand_landmarks:
+                                predicted_letter = predict_gesture(hand_landmarks)
+                                
+                                # Verifica se a predição está correta
+                                if predicted_letter == letter_folder:
+                                    correct_predictions += 1
+                                else:
+                                    incorrect_predictions += 1
+
+            # Adiciona os resultados dessa pasta à lista de resultados
+            validation_results.append({
+                'Letter': letter_folder,
+                'Total Images': total_images,
+                'Correct Predictions': correct_predictions,
+                'Incorrect Predictions': incorrect_predictions
+            })
+
+    # Gera o arquivo CSV com os resultados
+    csv_filename = 'validation_results.csv'
+    with open(csv_filename, mode='w', newline='') as csv_file:
+        fieldnames = ['Letter', 'Total Images', 'Correct Predictions', 'Incorrect Predictions']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for result in validation_results:
+            writer.writerow(result)
+
+    return jsonify({'message': f'Validation complete. Results saved to {csv_filename}'}), 200
 
 # Rota para exibir a página HTML com o stream de vídeo
 @app.route('/translate')
